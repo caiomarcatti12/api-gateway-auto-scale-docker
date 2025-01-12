@@ -21,15 +21,15 @@ import (
 	"sync"
 )
 
-// HostStore é o armazenamento principal para hosts e rotas.
+// HostStore is the main storage for hosts and routes.
 type HostStore struct {
 	store map[string]HostData
 }
 
-// HostData armazena as rotas e a configuração de CORS para cada host.
+// HostData stores the routes and CORS configuration for each host.
 type HostData struct {
-	CORS   CORSConfig             // Configuração CORS específica do host
-	Routes map[string]RouteConfig // Mapeamento de rotas pelo path
+	CORS   CORSConfig             // CORS configuration specific to the host
+	Routes map[string]RouteConfig // Mapping of routes by path
 }
 
 var (
@@ -37,7 +37,7 @@ var (
 	instance *HostStore
 )
 
-// GetHostStore retorna a instância Singleton de HostStore.
+// GetHostStore returns the Singleton instance of HostStore.
 func GetHostStore() *HostStore {
 	once.Do(func() {
 		instance = &HostStore{
@@ -47,22 +47,22 @@ func GetHostStore() *HostStore {
 	return instance
 }
 
-// AddHost adiciona ou atualiza um host no HostStore.
+// AddHost adds or updates a host in the HostStore.
 func (hs *HostStore) AddHost(hostConfig HostConfig) {
-	// Criar o map de rotas para o host.
+	// Create the route map for the host.
 	routeMap := make(map[string]RouteConfig)
 	for _, route := range hostConfig.Routes {
 		routeMap[route.Path] = route
 	}
 
-	// Adicionar o host com suas rotas e CORS.
+	// Add the host with its routes and CORS configuration.
 	hs.store[hostConfig.Host] = HostData{
 		CORS:   hostConfig.CORS,
 		Routes: routeMap,
 	}
 }
 
-// GetRoute obtém uma rota específica de um host pelo path.
+// GetRoute retrieves a specific route of a host by its path.
 func (hs *HostStore) GetRoute(host, path string) (RouteConfig, bool) {
 	hostData, ok := hs.store[host]
 	if !ok {
@@ -76,14 +76,14 @@ func (hs *HostStore) GetRoute(host, path string) (RouteConfig, bool) {
 	return route, found
 }
 
-// GetAllRoutes obtém todas as rotas de um host específico.
+// GetAllRoutes retrieves all routes of a specific host.
 func (hs *HostStore) GetAllRoutes(host string) ([]RouteConfig, bool) {
 	hostData, ok := hs.store[host]
 	if !ok {
 		return nil, false
 	}
 
-	// Converter o map de rotas para uma slice.
+	// Convert the route map to a slice.
 	routes := make([]RouteConfig, 0, len(hostData.Routes))
 	for _, route := range hostData.Routes {
 		routes = append(routes, route)
@@ -91,7 +91,7 @@ func (hs *HostStore) GetAllRoutes(host string) ([]RouteConfig, bool) {
 	return routes, true
 }
 
-// GetCORS obtém a configuração de CORS de um host.
+// GetCORS retrieves the CORS configuration of a host.
 func (hs *HostStore) GetCORS(host string) (CORSConfig, bool) {
 	hostData, ok := hs.store[host]
 	if !ok {
@@ -100,7 +100,7 @@ func (hs *HostStore) GetCORS(host string) (CORSConfig, bool) {
 	return hostData.CORS, true
 }
 
-// ListHosts retorna todos os hosts armazenados.
+// ListHosts returns all stored hosts.
 func (hs *HostStore) ListHosts() []string {
 	hosts := make([]string, 0, len(hs.store))
 	for host := range hs.store {
@@ -110,11 +110,10 @@ func (hs *HostStore) ListHosts() []string {
 }
 
 func (hs *HostStore) getPrefixPath(path string) string {
-	prefixSlipted := strings.Split(path, "/")
+	prefixSplit := strings.Split(path, "/")
 
-	if len(prefixSlipted) > 1 {
-		return fmt.Sprintf("/%s", prefixSlipted[1])
-
+	if len(prefixSplit) > 1 {
+		return fmt.Sprintf("/%s", prefixSplit[1])
 	}
 	return ""
 }

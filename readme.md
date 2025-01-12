@@ -1,41 +1,36 @@
-# API Gateway Knative-Docker
+# API Gateway Auto Scale Docker
 
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](license) ![Static Badge](https://img.shields.io/badge/N%C3%A3o%20pronto%20para%20produ%C3%A7%C3%A3o-red)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](docs/license) ![Static Badge](https://img.shields.io/badge/Not%20Ready%20for%20Production-red)
 
-## Introdução
+API Gateway Auto Scale Docker is an innovative solution that simulates Knative's functionality on Docker. Inspired by Knative's ability to manage serverless applications on Kubernetes, this project aims to provide an alternative for those using Docker in various environments, whether production, staging, or development.
 
-O API Gateway Knative-Docker é uma solução inovadora que simula a funcionalidade do Knative no Docker. Inspirado na capacidade do Knative de gerenciar aplicações serverless no Kubernetes, este projeto visa fornecer uma alternativa para aqueles que utilizam o Docker em diferentes ambientes, seja produção, homologação ou desenvolvimento.
+## Key Features
 
-## Características Principais
+- **Dynamic Container Management**: The API Gateway can dynamically start containers based on incoming requests. If a container is offline, it will be automatically started.
 
-- **Gerenciamento Dinâmico de Contêineres**: O API Gateway é capaz de iniciar contêineres dinamicamente com base nas solicitações recebidas. Se um contêiner estiver offline, ele será iniciado automaticamente.
+- **Resource Efficiency**: Containers that remain idle for a configurable period are shut down, optimizing resource usage.
 
-- **Eficiência de Recursos**: Contêineres que não recebem solicitações por um período de tempo configurável são desligados, otimizando o uso de recursos.
+- **Intelligent Routing**: The API Gateway manages request routing to the appropriate container, ensuring fast and efficient responses.
 
-- **Roteamento Inteligente**: O API Gateway gerencia o roteamento de solicitações para o contêiner apropriado, garantindo uma resposta rápida e eficiente.
+## API Gateway Route Configuration
 
-## Configuração das Rotas do API Gateway
+Our project's API Gateway uses a specific structure to configure and manage routes that redirect requests to specific Docker containers. This configuration covers aspects such as route paths, target services, retry attempts, health checks, and more.
 
-O API Gateway do nosso projeto utiliza uma estrutura específica para configurar e gerenciar rotas que redirecionam solicitações para contêineres Docker específicos. Essa configuração aborda aspectos como o caminho da rota, o serviço de destino, tentativas de retentativa, checagem de saúde e mais.
+To fully understand how to configure and the expected behavior of these routes, refer to the detailed guide available in [Route Configuration](docs/route_configuration.md).
 
-Para entender completamente como configurar e o comportamento esperado dessas rotas, consulte o guia detalhado disponível em [Configuração de Rotas](./route_configuration.md).
+## Development Environment Setup
 
-## Inicialização do Ambiente de Desenvolvimento
+To configure and start the project's development environment, see the [Development Guide](docs/development.md).
 
-Para configurar e iniciar o ambiente de desenvolvimento do projeto, consulte o guia [Desenvolvimento](./development.md).
+## How to Contribute
 
-## Inicialização do Ambiente de Produção
+We are always open to contributions! If you'd like to help improve the project, whether through bug fixes, enhancements, or new features, follow our [Contribution Guide](docs/contributing.md) to understand the process and ensure your contribution is integrated smoothly.
 
-Para configurar e iniciar o ambiente de produção do projeto, consulte o guia [Produção](./production.md).
+## Code of Conduct
 
-## Como Contribuir
+We are committed to providing a welcoming and inclusive community for everyone. We expect all project participants to follow our [Code of Conduct](docs/code_of_coduct.md). Please read and adhere to these guidelines to ensure a respectful and productive environment for all contributors.
 
-Estamos sempre abertos a contribuições! Se você deseja ajudar a melhorar o projeto, seja através de correções de bugs, melhorias ou novas funcionalidades, siga nosso [Guia de Contribuição](contributing.md) para entender o processo e garantir que sua contribuição seja integrada da melhor forma possível.
+## License
 
-## Código de Conduta
+This project is licensed under the Apache 2.0 license. See the [LICENSE](docs/license) file for details.
 
-Estamos comprometidos em proporcionar uma comunidade acolhedora e inclusiva para todos. Esperamos que todos os participantes do projeto sigam nosso [Código de Conduta](code_of_coduct.md). Pedimos que leia e siga estas diretrizes para garantir um ambiente respeitoso e produtivo para todos os colaboradores.
-
-## Licença
-
-Este projeto está licenciado sob a licença Apache 2.0. Consulte o arquivo [LICENSE](license) para obter detalhes.
