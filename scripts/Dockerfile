@@ -5,7 +5,7 @@ WORKDIR /app
 FROM dev as build
 WORKDIR /app
 COPY ./ /app
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -o /app/api-gateway-auto-scale-docker
+RUN cd /app/cmd/main && CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -o /app/api-gateway-auto-scale-docker
 
 FROM alpine:3.18.2 AS prd
 ENV CONFIG_PATH=/app/configs
