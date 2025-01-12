@@ -16,10 +16,11 @@
 package docker
 
 import (
-	"api-gateway-knative-docker/config"
-	"api-gateway-knative-docker/docker/container_store"
 	"context"
 	"errors"
+	"fmt"
+	"github.com/caiomarcatti12/api-gateway-auto-scale-docker/internal/config"
+	"github.com/caiomarcatti12/api-gateway-auto-scale-docker/internal/docker/container_store"
 	"log"
 	"sync"
 
@@ -48,7 +49,7 @@ func getMutexForService(service string) *sync.Mutex {
 	defer mutexesGuard.Unlock()
 
 	if _, exists := mutexes[service]; !exists {
-		log.Printf("Criando novo mutex para o serviço: %s", service)
+		log.Printf("creating new mutex for the service: %s", service)
 		mutexes[service] = &sync.Mutex{}
 	}
 	return mutexes[service]
@@ -57,7 +58,7 @@ func getMutexForService(service string) *sync.Mutex {
 // StartContainer Funcionalidade de iniciar um container
 func StartContainer(route config.RouteConfig) (bool, error) {
 	if route.Backend.ContainerName == "" {
-		log.Println("Nenhum serviço associado à rota, ignorando start do container.")
+		log.Println("No services associated with the route, ignoring container start.")
 		return true, nil
 	}
 
@@ -65,39 +66,39 @@ func StartContainer(route config.RouteConfig) (bool, error) {
 	cli, err := getDockerClient()
 
 	if err != nil {
-		log.Printf("Erro ao criar cliente Docker: %v", err)
+		log.Printf("Error creating Docker client: %v", err)
 		return false, err
 	}
 
-	log.Printf("Iniciando processo para o container do serviço: %s", route.Backend.ContainerName)
+	log.Printf("Starting process for the service container: %s", route.Backend.ContainerName)
 
 	containerService, exists := container_store.GetByContainerName(route.Backend.ContainerName)
 
 	if !exists {
-		log.Printf("Não foi possível encontrar o serviço para o container %s", route.Backend.ContainerName)
+		log.Printf("Unable to find service for container %s", route.Backend.ContainerName)
 	}
 
 	serviceMutex := getMutexForService(route.Backend.ContainerName)
 	serviceMutex.Lock()
 	defer serviceMutex.Unlock()
 
-	log.Printf("Container para o serviço %s não está em execução. Tentando iniciar...", route.Backend.ContainerName)
+	log.Printf("Container for service %s is not running. Trying to start...", route.Backend.ContainerName)
 	if err := cli.ContainerStart(ctx, containerService.ID, container.StartOptions{}); err != nil {
-		log.Printf("Erro ao iniciar container para o serviço %s: %v", route.Backend.ContainerName, err)
+		log.Printf("Error starting container for service %s: %v", route.Backend.ContainerName, err)
 		return false, err
 	}
 
-	log.Printf("Container iniciado para o serviço: %s", route.Backend.ContainerName)
+	log.Printf("Container started for service: %s", route.Backend.ContainerName)
 
 	// Verificar o healthcheck do container
 	if !checkHealth(route) {
-		log.Printf("Healthcheck falhou para o container %s", route.Backend.ContainerName)
-		return false, errors.New("healthcheck falhou para o container " + route.Backend.ContainerName)
+		log.Printf("Healthcheck failed for container %s", route.Backend.ContainerName)
+		return false, errors.New(fmt.Sprintf("Healthcheck failed for container %s", route.Backend.ContainerName))
 	}
 
-	log.Printf("Healthcheck bem-sucedido para o container: %s", route.Backend.ContainerName)
+	log.Printf("Healthcheck successful for container: %s", route.Backend.ContainerName)
 
-	log.Printf("Último acesso ao container do serviço %s atualizado.", route.Backend.ContainerName)
+	log.Printf("Last access to updated service container %s.", route.Backend.ContainerName)
 	container_store.UpdateAccessTime(containerService.ID)
 
 	return true, nil
@@ -108,16 +109,16 @@ func StopContainer(containerID string) {
 	ctx := context.Background()
 	cli, err := getDockerClient()
 	if err != nil {
-		log.Printf("Erro ao criar cliente Docker: %v", err)
+		log.Printf("Error creating Docker client: %v", err)
 		return
 	}
 
-	log.Printf("Iniciando processo de stop para o container: %s", containerID)
+	log.Printf("Starting stop process for container: %s", containerID)
 
 	// Recupera o serviço associado ao containerID para obter o mutex correto
 	service := getServiceForContainer(containerID)
 	if service == "" {
-		log.Printf("Erro ao encontrar o serviço associado ao container: %s", containerID)
+		log.Printf("Error finding the service associated with the container: %s", containerID)
 		return
 	}
 
@@ -125,22 +126,21 @@ func StopContainer(containerID string) {
 	serviceMutex.Lock()
 	defer serviceMutex.Unlock()
 
-	log.Printf("Parando container: %s do serviço: %s", containerID, service)
+	log.Printf("Stopping container: %s of service: %s", containerID, service)
 	err = cli.ContainerStop(ctx, containerID, container.StopOptions{})
 	if err != nil {
-		log.Printf("Erro ao parar o container %s: %v", containerID, err)
+		log.Printf("Error stopping container %s: %v", containerID, err)
 	} else {
-		log.Printf("Container %s parado com sucesso.", containerID)
+		log.Printf("Container %s stopped successfully.", containerID)
 	}
 }
 
 // getServiceForContainer é um placeholder para obter o serviço associado ao containerID
-// (Você precisaria implementar isso com base no seu store)
 func getServiceForContainer(containerID string) string {
-	container, exists := container_store.GetByID(containerID)
+	containerInStore, exists := container_store.GetByID(containerID)
 	if exists {
-		return container.ContainerName
+		return containerInStore.ContainerName
 	}
-	log.Printf("Não foi possível encontrar o serviço para o container %s", containerID)
+	log.Printf("Unable to find service for container %s", containerID)
 	return ""
 }

@@ -21,6 +21,7 @@ import (
 	"net/url"
 )
 
+// proxyToService handles requests and proxies them to the specified service URL.
 func proxyToService(serviceURL *url.URL) http.HandlerFunc {
 	proxy := httputil.NewSingleHostReverseProxy(serviceURL)
 	return func(w http.ResponseWriter, r *http.Request) {

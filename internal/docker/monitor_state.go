@@ -16,8 +16,8 @@
 package docker
 
 import (
-	"api-gateway-knative-docker/docker/container_store"
 	"context"
+	"github.com/caiomarcatti12/api-gateway-auto-scale-docker/internal/docker/container_store"
 	"log"
 	"strings"
 	"sync"
@@ -33,7 +33,7 @@ var (
 	dockerClientInstance *client.Client
 )
 
-// CheckContainersActive inicia o processo contínuo de verificação dos containers.
+// CheckContainersActive starts the continuous process of verifying the containers.
 func CheckContainersActive() {
 	for {
 		syncContainersState()
@@ -41,20 +41,20 @@ func CheckContainersActive() {
 	}
 }
 
-// syncContainersState é o processo principal que sincroniza o estado dos containers.
+// syncContainersState is the main process that synchronizes the state of the containers.
 func syncContainersState() {
 	updateContainerMutex.Lock()
 	defer updateContainerMutex.Unlock()
 
 	cli, err := getDockerClient()
 	if err != nil {
-		log.Println("Erro ao obter cliente Docker:", err)
+		log.Println("Error obtaining Docker client:", err)
 		return
 	}
 
 	containers, err := listAllContainers(cli)
 	if err != nil {
-		log.Println("Erro ao listar containers:", err)
+		log.Println("Error listing containers:", err)
 		return
 	}
 
@@ -65,13 +65,13 @@ func syncContainersState() {
 	updateOrAddContainers(activeContainers, currentContainers)
 }
 
-// listAllContainers lista todos os containers, incluindo os parados.
+// listAllContainers lists all containers, including stopped ones.
 func listAllContainers(cli *client.Client) ([]types.Container, error) {
 	ctx := context.Background()
 	return cli.ContainerList(ctx, container.ListOptions{All: true})
 }
 
-// mapContainers cria um mapa dos containers atuais com suas informações relevantes.
+// mapContainers creates a map of the current containers with their relevant information.
 func mapContainers(containers []types.Container) map[string]container_store.Container {
 	currentContainers := make(map[string]container_store.Container)
 
@@ -84,7 +84,7 @@ func mapContainers(containers []types.Container) map[string]container_store.Cont
 	return currentContainers
 }
 
-// createContainerObject cria uma instância de Container com base nos dados fornecidos.
+// createContainerObject creates a Container instance based on the provided data.
 func createContainerObject(container types.Container, name string) container_store.Container {
 	return container_store.Container{
 		ID:            container.ID,
@@ -94,17 +94,17 @@ func createContainerObject(container types.Container, name string) container_sto
 	}
 }
 
-// removeMissingContainers remove containers que não estão mais presentes no host.
+// removeMissingContainers removes containers that are no longer present on the host.
 func removeMissingContainers(activeContainers, currentContainers map[string]container_store.Container) {
 	for containerID, storedContainer := range activeContainers {
 		if _, exists := currentContainers[containerID]; !exists {
 			container_store.Remove(containerID)
-			log.Printf("Removido contêiner: %s (%s)", storedContainer.ContainerName, storedContainer.ID)
+			log.Printf("Removed container: %s (%s)", storedContainer.ContainerName, storedContainer.ID)
 		}
 	}
 }
 
-// updateOrAddContainers adiciona ou atualiza containers no store.
+// updateOrAddContainers adds or updates containers in the store.
 func updateOrAddContainers(activeContainers, currentContainers map[string]container_store.Container) {
 	for _, currentContainer := range currentContainers {
 		if storedContainer, exists := activeContainers[currentContainer.ID]; exists {
@@ -115,20 +115,20 @@ func updateOrAddContainers(activeContainers, currentContainers map[string]contai
 	}
 }
 
-// updateContainerIfChanged atualiza um container se houver mudança no status.
+// updateContainerIfChanged updates a container if there is a change in its status.
 func updateContainerIfChanged(storedContainer, currentContainer container_store.Container) {
 	if storedContainer.IsActive != currentContainer.IsActive {
 		storedContainer.IsActive = currentContainer.IsActive
 
 		container_store.Update(storedContainer)
 
-		log.Printf("Atualizado contêiner: %s (%s) - IsActive: %v",
+		log.Printf("Updated container: %s (%s) - IsActive: %v",
 			storedContainer.ContainerName, storedContainer.ID, storedContainer.IsActive)
 	}
 }
 
-// addNewContainer adiciona um novo container ao store.
+// addNewContainer adds a new container to the store.
 func addNewContainer(currentContainer container_store.Container) {
 	container_store.Add(currentContainer)
-	log.Printf("Adicionado novo contêiner: %s (%s)", currentContainer.ContainerName, currentContainer.ID)
+	log.Printf("Added new container: %s (%s)", currentContainer.ContainerName, currentContainer.ID)
 }

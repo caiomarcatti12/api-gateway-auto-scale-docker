@@ -16,54 +16,54 @@
 package docker
 
 import (
-	"api-gateway-knative-docker/config"
 	"fmt"
+	"github.com/caiomarcatti12/api-gateway-auto-scale-docker/internal/config"
 	"log"
 	"net/http"
 	"time"
 )
 
-// checkHealth realiza o healthcheck para uma rota específica usando Retry e Liveness Probe.
+// checkHealth performs a health check for a specific route using Retry and Liveness Probe.
 func checkHealth(route config.RouteConfig) bool {
 	client := &http.Client{
 		Timeout: time.Duration(route.Retry.Period) * time.Second,
 	}
 
-	// Extrair configuração do Liveness Probe
+	// Extract Liveness Probe configuration
 	liveness := route.LivenessProbe
 	url := fmt.Sprintf("%s://%s:%d/%s", route.Backend.Protocol, route.Backend.Host, route.Backend.Port, route.LivenessProbe.Path)
 
-	log.Printf("Verificando healthcheck para o serviço: %s", route.Backend.ContainerName)
+	log.Printf("Performing health check for service: %s", route.Backend.ContainerName)
 
-	// Espera inicial definida no Liveness Probe
+	// Initial delay defined in the Liveness Probe
 	if liveness.InitialDelaySeconds > 0 {
-		log.Printf("Aguardando %d segundos antes do healthcheck inicial...", liveness.InitialDelaySeconds)
+		log.Printf("Waiting %d seconds before initial health check...", liveness.InitialDelaySeconds)
 		time.Sleep(time.Duration(liveness.InitialDelaySeconds) * time.Second)
 	}
 
-	// Tentativas definidas no RetryConfig
+	// Attempts defined in RetryConfig
 	for attempt := 1; attempt <= route.Retry.Attempts; attempt++ {
 		resp, err := client.Get(url)
 
-		// Verificação de sucesso
+		// Success check
 		if err == nil && resp.StatusCode == http.StatusOK {
-			log.Printf("Healthcheck bem-sucedido para %s na tentativa %d",
+			log.Printf("Health check succeeded for %s on attempt %d",
 				route.Backend.ContainerName, attempt)
 			return true
 		}
 
-		log.Printf("Tentativa %d falhou para %s, erro: %v",
+		log.Printf("Attempt %d failed for %s, error: %v",
 			attempt, route.Backend.ContainerName, err)
 
-		// Se não for a última tentativa, aguarde o período de retry
+		// If not the last attempt, wait for the retry period
 		if attempt < route.Retry.Attempts {
-			log.Printf("Aguardando %d segundos antes da próxima tentativa...", route.Retry.Period)
+			log.Printf("Waiting %d seconds before the next attempt...", route.Retry.Period)
 			time.Sleep(time.Duration(route.Retry.Period) * time.Second)
 		}
 	}
 
-	// Se todas as tentativas falharem, aguardar o período de tolerância para término (grace period)
-	log.Printf("Healthcheck falhou para %s após %d tentativas. Aguardando %d segundos antes de finalizar...",
+	// If all attempts fail, wait for the grace period before termination
+	log.Printf("Health check failed for %s after %d attempts. Waiting %d seconds before finalizing...",
 		route.Backend.ContainerName, route.Retry.Attempts, route.TTL)
 
 	time.Sleep(time.Duration(route.TTL) * time.Second)

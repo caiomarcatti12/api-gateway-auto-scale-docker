@@ -16,16 +16,17 @@
 package proxy
 
 import (
-	"api-gateway-knative-docker/config"
-	"api-gateway-knative-docker/docker"
-	"api-gateway-knative-docker/docker/container_store"
 	"fmt"
+	"github.com/caiomarcatti12/api-gateway-auto-scale-docker/internal/config"
+	"github.com/caiomarcatti12/api-gateway-auto-scale-docker/internal/docker"
+	"github.com/caiomarcatti12/api-gateway-auto-scale-docker/internal/docker/container_store"
 	"log"
 	"net/http"
 	"net/url"
 	"strings"
 )
 
+// HandleRequest processes an incoming request and routes it to the appropriate backend service.
 func HandleRequest(route config.RouteConfig) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if route.Backend.Protocol == "" {
@@ -54,7 +55,7 @@ func HandleRequest(route config.RouteConfig) http.HandlerFunc {
 				}
 			}
 
-			log.Printf("Último acesso ao container do serviço %s atualizado.", route.Backend.ContainerName)
+			log.Printf("Last access to the service container %s updated.", route.Backend.ContainerName)
 			container_store.UpdateAccessTime(containerService.ID)
 		}
 
@@ -72,6 +73,7 @@ func HandleRequest(route config.RouteConfig) http.HandlerFunc {
 	}
 }
 
+// stripRoutePath removes the route's base path from the request path.
 func stripRoutePath(requestPath, routePath string) string {
 	return strings.TrimPrefix(requestPath, routePath)
 }

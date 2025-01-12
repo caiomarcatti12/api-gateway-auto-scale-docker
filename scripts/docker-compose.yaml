@@ -1,0 +1,15 @@
+name: api-gateway-auto-scale-docker
+services:
+  api-gateway-auto-scale-docker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: dev
+    image: caiomarcatti12/api-gateway-auto-scale-docker:dev
+    container_name: api-gateway-auto-scale-docker
+    tty: true
+    ports:
+      - "8080:8080"
+    volumes:
+      - ../:/app
+      - /var/run/docker.sock:/var/run/docker.sock

@@ -16,8 +16,8 @@
 package docker
 
 import (
-	"api-gateway-knative-docker/config" // Importar o pacote correto
-	"api-gateway-knative-docker/docker/container_store"
+	"github.com/caiomarcatti12/api-gateway-auto-scale-docker/internal/config"
+	"github.com/caiomarcatti12/api-gateway-auto-scale-docker/internal/docker/container_store"
 	"sync"
 	"time"
 )
@@ -26,7 +26,7 @@ var (
 	containerMonitorMutex sync.Mutex
 )
 
-// CheckContainersToStop inicia o processo contínuo de monitoramento e parada de containers inativos.
+// CheckContainersToStop starts the continuous process of monitoring and stopping inactive containers.
 func CheckContainersToStop() {
 	for {
 		monitorAndStopContainers()
@@ -34,7 +34,7 @@ func CheckContainersToStop() {
 	}
 }
 
-// monitorAndStopContainers monitora e para containers que estão inativos além do tempo limite.
+// monitorAndStopContainers monitors and stops containers that are inactive beyond the timeout limit.
 func monitorAndStopContainers() {
 	containerMonitorMutex.Lock()
 	defer containerMonitorMutex.Unlock()
@@ -58,19 +58,19 @@ func monitorAndStopContainers() {
 	}
 }
 
-// checkAndStopContainer verifica se o container deve ser parado com base no TTL.
+// checkAndStopContainer checks if the container should be stopped based on TTL.
 func checkAndStopContainer(container container_store.Container, route config.RouteConfig, now time.Time) {
 	if isContainerExpired(container, route, now) {
 		stopAndRemoveContainer(container)
 	}
 }
 
-// // isContainerExpired verifica se o container excedeu o tempo de inatividade permitido.
+// isContainerExpired checks if the container has exceeded the allowed inactivity time.
 func isContainerExpired(container container_store.Container, route config.RouteConfig, now time.Time) bool {
 	return now.Sub(container.LastAccess) > time.Duration(route.TTL)*time.Second && container.IsActive
 }
 
-// // stopAndRemoveContainer para e remove o container da store.
+// stopAndRemoveContainer stops and removes the container from the store.
 func stopAndRemoveContainer(container container_store.Container) {
 	StopContainer(container.ID)
 

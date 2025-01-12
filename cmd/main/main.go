@@ -16,17 +16,25 @@
 package main
 
 import (
-	"api-gateway-knative-docker/config"
-	"api-gateway-knative-docker/docker"
-	"api-gateway-knative-docker/proxy"
+	"github.com/caiomarcatti12/api-gateway-auto-scale-docker/internal/config"
+	"github.com/caiomarcatti12/api-gateway-auto-scale-docker/internal/docker"
+	"github.com/caiomarcatti12/api-gateway-auto-scale-docker/internal/proxy"
 	"log"
 	"net/http"
 )
 
 func main() {
-	err := config.LoadConfig()
+	configLoader, err := config.NewConfigLoader()
 
 	if err != nil {
+		log.Fatal("Error loading config.")
+		return
+	}
+
+	err = configLoader.LoadConfigs()
+
+	if err != nil {
+		log.Fatal("Error loading config.")
 		return
 	}
 
