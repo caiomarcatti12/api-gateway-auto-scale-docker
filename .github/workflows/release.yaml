@@ -22,7 +22,7 @@ jobs:
       - name: Configurar Go
         uses: actions/setup-go@v4
         with:
-          go-version: 1.22.5
+          go-version: 1.23.0
 
       - name: Install dependencies
         run: go mod download
@@ -83,7 +83,7 @@ jobs:
       - name: Construir a imagem Docker
         run: |
           TAG_NAME="${{ steps.version.outputs.new_tag }}"
-          docker build --target prd -t caiomarcatti12/api-gateway-auto-scale-docker:$TAG_NAME .
+          docker build --target prd -t caiomarcatti12/api-gateway-auto-scale-docker:$TAG_NAME -f scripts/Dockerfile .
 
       - name: Publicar a imagem no Docker Hub
         run: |
