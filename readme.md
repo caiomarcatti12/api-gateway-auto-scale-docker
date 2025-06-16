@@ -22,6 +22,75 @@ To fully understand how to configure and the expected behavior of these routes, 
 
 To configure and start the project's development environment, see the [Development Guide](docs/development.md).
 
+## How to use docker run
+
+```bash
+docker run -d \
+  --name api-gateway-auto-scale \
+  -p 8080:8080 \
+  -v $(pwd)/configs/config.yaml:/app/config.yaml \
+  caiomarcatti12/api-gateway-auto-scale-docker:v0.0.6
+```
+
+- Certifique-se de criar o arquivo `configs/config.yaml` conforme o exemplo abaixo.
+
+### How to use docker compse
+
+```yaml
+version: "3.8"
+services:
+  api-gateway-auto-scale:
+    image: caiomarcatti12/api-gateway-auto-scale-docker:v0.0.6
+    container_name: api-gateway-auto-scale
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./configs/config.yaml:/app/config.yaml
+    restart: unless-stopped
+```
+
+- Salve o arquivo acima como `docker-compose.yaml` e execute:
+  ```bash
+  docker compose up -d
+  ```
+
+### Exemplo de arquivo de configuração (`configs/config.yaml`)
+
+```yaml
+- host: host.docker.internal
+  cors:
+    allowedOrigins:
+      - "http://host.docker.internal"
+    allowedMethods:
+      - "GET"
+      - "POST"
+      - "PUT"
+      - "DELETE"
+    allowedHeaders:
+      - "Authorization"
+      - "Content-Type"
+    allowCredentials: true
+    exposedHeaders:
+      - "X-Custom-Header"
+    maxAge: 3600
+  routes:
+    - path: /my-app-route
+      stripPath: true
+      ttl: 3
+      backend:
+        protocol: "http"
+        host: "host.docker.internal"
+        port: 8002
+        containerName: "my-app-container-name"
+      retry:
+        attempts: 3
+        period: 5
+      livenessProbe:
+        path: healthcheck
+        successThreshold: 1
+        initialDelaySeconds: 3
+```
+
 ## How to Contribute
 
 We are always open to contributions! If you'd like to help improve the project, whether through bug fixes, enhancements, or new features, follow our [Contribution Guide](docs/contributing.md) to understand the process and ensure your contribution is integrated smoothly.
